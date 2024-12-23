@@ -4,11 +4,11 @@ interface WordInfo {
 }
 
 const words: WordInfo[] = [
-  { word: "APPLE", definition: "A round fruit with red or green skin and white flesh" },
-  { word: "BEACH", definition: "A sandy or pebbly shore, especially by the sea" },
-  { word: "CLOUD", definition: "A visible mass of water droplets in the atmosphere" },
-  { word: "DANCE", definition: "Move rhythmically to music" },
-  { word: "EAGLE", definition: "A large bird of prey with a massive hooked bill" },
+  { word: "POMME", definition: "Un fruit rond avec une peau rouge ou verte et une chair blanche" },
+  { word: "PLAGE", definition: "Une étendue de sable ou de galets au bord de la mer" },
+  { word: "NUAGE", definition: "Une masse visible de gouttelettes d'eau dans l'atmosphère" },
+  { word: "DANSE", definition: "Bouger rythmiquement sur de la musique" },
+  { word: "AIGLE", definition: "Un grand oiseau de proie avec un bec crochu massif" },
 ];
 
 export const getRandomWord = (): WordInfo => {
