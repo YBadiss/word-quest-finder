@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getRandomWord } from '../services/wordService';
+import { getWordProximity } from '../services/openaiService';
 import { toast } from 'sonner';
 
 const WordGame = () => {
@@ -7,9 +8,10 @@ const WordGame = () => {
   const [definition, setDefinition] = useState('');
   const [guess, setGuess] = useState('');
   const [attempts, setAttempts] = useState(6);
-  const [guesses, setGuesses] = useState<string[]>([]);
+  const [guesses, setGuesses] = useState<Array<{ word: string; proximity: number }>>([]);
   const [gameOver, setGameOver] = useState(false);
   const [won, setWon] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const { word, definition } = getRandomWord();
@@ -17,7 +19,7 @@ const WordGame = () => {
     setDefinition(definition);
   }, []);
 
-  const handleGuess = (e: React.FormEvent) => {
+  const handleGuess = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (guess.length === 0) return;
@@ -27,9 +29,12 @@ const WordGame = () => {
       return;
     }
 
+    setIsLoading(true);
     const upperGuess = guess.toUpperCase();
-    setGuesses([...guesses, upperGuess]);
+    const proximity = await getWordProximity(upperGuess, currentWord);
+    setGuesses([...guesses, { word: upperGuess, proximity }]);
     setGuess('');
+    setIsLoading(false);
     
     if (upperGuess === currentWord) {
       setWon(true);
@@ -48,20 +53,21 @@ const WordGame = () => {
   };
 
   const renderWordGrid = () => {
-    return guesses.map((guessWord, i) => (
-      <div key={i} className="flex gap-2 mb-2">
-        {guessWord.split('').map((letter, j) => (
-          <div
-            key={`${i}-${j}`}
-            className={`w-12 h-12 flex items-center justify-center text-xl font-mono border-2 
-              ${letter === currentWord[j] ? 'bg-green-500 text-white border-green-600' : 
-                currentWord.includes(letter) ? 'bg-yellow-500 text-white border-yellow-600' : 
-                'bg-gray-200 text-gray-700 border-gray-300'} 
-              animate-pop`}
-          >
-            {letter}
-          </div>
-        ))}
+    return guesses.map((guess, i) => (
+      <div key={i} className="flex gap-2 mb-2 items-center">
+        <div className="flex gap-2">
+          {guess.word.split('').map((letter, j) => (
+            <div
+              key={`${i}-${j}`}
+              className="w-12 h-12 flex items-center justify-center text-xl font-mono border-2 border-gray-200 bg-gray-100"
+            >
+              {letter}
+            </div>
+          ))}
+        </div>
+        <div className="ml-4 text-lg font-semibold">
+          {guess.proximity}% de proximité
+        </div>
       </div>
     ));
   };
@@ -106,12 +112,14 @@ const WordGame = () => {
             maxLength={currentWord.length}
             className="flex-1 px-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-indigo-500"
             placeholder={`Entrez un mot de ${currentWord.length} lettres`}
+            disabled={isLoading}
           />
           <button
             type="submit"
-            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            disabled={isLoading}
           >
-            Deviner
+            {isLoading ? 'Analyse...' : 'Deviner'}
           </button>
         </form>
       )}
