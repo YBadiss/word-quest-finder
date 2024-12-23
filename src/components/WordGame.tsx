@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { getRandomWord } from '../services/wordService';
 import { getWordProximity } from '../services/openaiService';
 import { toast } from 'sonner';
+import { Button } from './ui/button';
+import { Share } from 'lucide-react';
 
 const WordGame = () => {
   const [currentWord, setCurrentWord] = useState('');
@@ -18,6 +20,12 @@ const WordGame = () => {
     setCurrentWord(word);
     setDefinition(definition);
   }, []);
+
+  const getProximitySquares = (proximity: number) => {
+    const greenSquares = Math.round((proximity / 100) * 10);
+    const whiteSquares = 10 - greenSquares;
+    return '🟩'.repeat(greenSquares) + '⬜️'.repeat(whiteSquares);
+  };
 
   const handleGuess = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +66,20 @@ const WordGame = () => {
     }
   };
 
+  const copyGameState = () => {
+    const header = `Semantle FR - ${won ? guesses.length : 'X'}/${6}\n\n`;
+    const guessesStr = guesses
+      .map(guess => getProximitySquares(guess.proximity))
+      .join('\n');
+    const fullText = header + guessesStr;
+    
+    navigator.clipboard.writeText(fullText).then(() => {
+      toast.success('Résultat copié dans le presse-papier !');
+    }).catch(() => {
+      toast.error('Erreur lors de la copie');
+    });
+  };
+
   const renderWordGrid = () => {
     return guesses.map((guess, i) => (
       <div key={i} className="flex gap-2 mb-2 items-center">
@@ -73,6 +95,9 @@ const WordGame = () => {
         </div>
         <div className="ml-4 text-lg font-semibold">
           {guess.proximity}% de proximité
+        </div>
+        <div className="ml-2 font-mono">
+          {getProximitySquares(guess.proximity)}
         </div>
       </div>
     ));
@@ -131,12 +156,22 @@ const WordGame = () => {
       )}
 
       {gameOver && (
-        <button
-          onClick={() => window.location.reload()}
-          className="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-        >
-          Rejouer
-        </button>
+        <div className="space-y-4">
+          <Button
+            onClick={() => window.location.reload()}
+            className="w-full"
+          >
+            Rejouer
+          </Button>
+          <Button
+            onClick={copyGameState}
+            variant="outline"
+            className="w-full"
+          >
+            <Share className="mr-2 h-4 w-4" />
+            Partager le résultat
+          </Button>
+        </div>
       )}
     </div>
   );
