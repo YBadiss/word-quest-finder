@@ -31,17 +31,23 @@ const WordGame = () => {
 
     setIsLoading(true);
     const upperGuess = guess.toUpperCase();
+    
+    // Check for exact match first
+    if (upperGuess === currentWord) {
+      setGuesses([...guesses, { word: upperGuess, proximity: 100 }]);
+      setGuess('');
+      setWon(true);
+      setGameOver(true);
+      setIsLoading(false);
+      toast.success("Félicitations ! Vous avez trouvé le mot !");
+      return;
+    }
+
+    // If not an exact match, proceed with API call
     const proximity = await getWordProximity(upperGuess, currentWord);
     setGuesses([...guesses, { word: upperGuess, proximity }]);
     setGuess('');
     setIsLoading(false);
-    
-    if (upperGuess === currentWord) {
-      setWon(true);
-      setGameOver(true);
-      toast.success("Félicitations ! Vous avez trouvé le mot !");
-      return;
-    }
 
     const newAttempts = attempts - 1;
     setAttempts(newAttempts);
